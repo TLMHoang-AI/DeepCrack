@@ -57,19 +57,30 @@ The same ideas are being examined across multiple segmentation architectures, in
 | Final consolidated benchmark | In progress |
 | Journal-ready method and manuscript | Not finalized |
 
-## Representative Internal Results
+## Evaluation Protocol
 
-The values below are included to show the current experimental progress, **not as final journal claims**. They come from historical internal runs and may change as the evaluation protocol is consolidated.
+The project uses two crack-segmentation datasets with different roles:
 
-| Experiment | Representative validation result | Notes |
-|---|---|---|
-| U-DeepCrack hybrid | Crack IoU ≈ **0.5429** | Best checkpoint in one archived run; VGG16-based encoder-decoder with deep supervision |
-| Archived static multi-loss run (`Scenario_16`) | Dice **0.7101**, Crack IoU **0.5505**, mIoU **0.7673** | Best recorded validation point at epoch 58 |
-| Same `Scenario_16` checkpoint | Precision **0.6986**, Recall **0.7220** | Shows the precision/recall trade-off rather than reporting overlap alone |
+- **UDTIRI-Crack** is used for model training and validation. Its public release does not provide the test split used by this project, so UDTIRI results in this repository are reported only for train/validation.
+- **OmniCrack30K** is used as an external test dataset to evaluate how the trained model transfers beyond the UDTIRI training/validation distribution.
 
-The U-DeepCrack run used approximately **25.86M parameters** and the archived report recorded its best checkpoint at epoch 23. The static multi-loss run continued to epoch 78 before early stopping, with its best validation crack IoU observed earlier in training.
+This means the OmniCrack30K numbers should be interpreted as **cross-dataset test performance**, not as a same-dataset held-out UDTIRI test score.
 
-These numbers are intentionally labeled as **representative validation results**. They should not be interpreted as a finalized benchmark across architectures because some historical experiments used different training or evaluation details.
+The consolidated UDeepCrack table is available at [`results/udeepcrack_results.csv`](results/udeepcrack_results.csv). It contains **27 UDeepCrack experiment rows** covering static loss ablations and adaptive loss-weighting methods. Metrics are stored on a **0–1 scale**.
+
+## Representative UDeepCrack Results
+
+The values below are representative internal results, **not final journal claims**. They are included to make the current experimental progress visible while the full benchmark is still being consolidated.
+
+| UDeepCrack configuration | UDTIRI Val Dice | UDTIRI Val IoU | OmniCrack30K Test Dice | OmniCrack30K Test IoU | Patch Test Dice | Patch Test IoU |
+|---|---:|---:|---:|---:|---:|---:|
+| CE + Dice + IoU + Focal | 0.7100 | 0.5504 | **0.4039** | **0.2991** | 0.4088 | 0.3058 |
+| IoU loss | 0.7005 | 0.5390 | 0.3989 | 0.2965 | **0.4111** | **0.3078** |
+| Dice + CE | 0.7086 | 0.5487 | 0.3991 | 0.2975 | 0.4049 | 0.3046 |
+
+Among the adaptive-weighting UDeepCrack runs in the provided results, **uncertainty weighting with BCE + Dice + Focal** reached validation Dice **0.6376** and validation IoU **0.4847** on UDTIRI-Crack. The corresponding OmniCrack30K test metrics were not present in the provided adaptive-weighting results file, so they are intentionally left blank in the consolidated CSV rather than inferred.
+
+The consolidated file also preserves source-traceability fields and data-quality notes. One source row contains an apparent missing decimal point (`7725`, interpreted as `77.25%`), and one historical `Dice+Focal` test row has IoU values greater than Dice; those values are retained but explicitly flagged instead of silently corrected.
 
 ## Evaluation Focus
 
@@ -95,6 +106,8 @@ The following materials are intentionally **not distributed** in this repository
 - checkpoints and trained weights
 - raw training logs and internal result dumps
 - unpublished implementation details
+
+Selected consolidated result tables may be published when they do not expose implementation details that the team intends to keep private.
 
 This is deliberate. The project is ongoing and the team is considering a journal submission, so the public repository is limited to a high-level description of the research scope and status.
 

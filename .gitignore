@@ -1,0 +1,28 @@
+# Public showcase: keep research implementation and artifacts private by default
+*.py
+*.ipynb
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.pkl
+*.pickle
+*.joblib
+
+# Datasets / experiment outputs
+data/
+dataset/
+datasets/
+runs/
+checkpoints/
+weights/
+logs/
+outputs/
+internal/
+private/
+
+# Local environments
+.venv/
+venv/
+__pycache__/
+.ipynb_checkpoints/

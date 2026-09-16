@@ -1,78 +1,104 @@
-# DeepCrack Research — Loss-Centric Road Crack Segmentation
+# DeepCrack Research — U-DeepCrack Architecture & Loss Optimization
 
 > **Status: active research / in development**  
 > This public repository is intentionally **documentation- and results-focused**. Training code, model implementations, experiment notebooks, checkpoints, and raw logs are withheld while the research is being consolidated for possible journal publication.
 
 ## Overview
 
-This project studies **road crack segmentation through the lens of loss-function design and optimization**. Crack pixels are sparse, thin, and structurally sensitive: a small number of false positives, false negatives, or broken connections can strongly affect both region-overlap metrics and the visual continuity of a predicted crack.
+This project studies **road crack segmentation from two complementary directions: architecture design and loss-function optimization**.
 
-The main research question is therefore not only *which architecture performs well*, but **how the training objective changes what a segmentation model learns**.
+The first direction is **U-DeepCrack**, a project-specific architectural extension developed from DeepCrack 2019. The goal is to improve spatial reconstruction of thin crack structures while preserving the hierarchical supervision that makes DeepCrack effective for multi-scale crack detection.
 
-The work starts from a DeepCrack-derived segmentation pipeline and uses it as an experimental platform for systematic loss studies. The project investigates:
+The second direction is a systematic study of **segmentation objectives and loss balancing**. Crack pixels are sparse, thin, and structurally sensitive, so the optimization objective strongly affects recall, false positives, continuity, and overlap metrics. The project therefore evaluates single losses, multi-loss combinations, fixed weighting, and adaptive weighting methods such as **GradNorm** and **uncertainty-based weighting**.
 
-- individual segmentation objectives such as BCE, Dice, IoU, and Focal loss;
-- multi-loss combinations, including boundary- and connectivity-oriented objectives;
-- the effect of fixed manual loss weights;
-- adaptive loss balancing with **GradNorm**;
+These two directions are intentionally studied together: U-DeepCrack provides a stronger architectural platform, while the loss-function study investigates how that platform should be optimized and whether the same conclusions transfer to other segmentation architectures.
+
+## Main Research Contributions
+
+### 1. U-DeepCrack architecture
+
+U-DeepCrack extends the DeepCrack 2019 design with a U-Net-style reconstruction path. The implemented version combines:
+
+- a VGG16-based hierarchical encoder;
+- a four-stage decoder with progressive upsampling;
+- encoder-decoder skip connections;
+- double-convolution reconstruction blocks;
+- five side outputs;
+- deep supervision and fused prediction.
+
+Compared with the original DeepCrack design, which mainly upsamples hierarchical side predictions independently, U-DeepCrack reconstructs spatial information progressively through a decoder while retaining multi-scale supervision.
+
+An attention-gated extension of U-DeepCrack has also been prototyped and remains under evaluation.
+
+### 2. Loss-function and optimization study
+
+The project systematically investigates how the training objective changes segmentation behavior. The study includes:
+
+- BCE / cross-entropy;
+- Dice loss;
+- IoU loss;
+- Focal loss;
+- Boundary-oriented loss;
+- Connectivity-oriented loss;
+- multi-loss combinations;
+- fixed manual weighting;
+- **GradNorm** adaptive weighting;
 - a multiplicative GradNorm variant;
-- **uncertainty-based loss weighting**;
-- whether loss-function behavior remains consistent across different segmentation architectures.
+- **uncertainty-based loss weighting**.
 
-Architectural variants such as U-DeepCrack, attention-enhanced extensions, and lightweight models are used primarily as **validation platforms for the loss-function research**, rather than being the sole focus of the project.
+The goal is not only to identify a high-scoring configuration, but to understand how different objectives trade precision, recall, overlap quality, crack continuity, and optimization stability.
+
+### 3. Cross-architecture and cross-dataset validation
+
+The loss strategies are also being evaluated beyond U-DeepCrack, including DeepCrack-derived and lightweight segmentation models such as LM-Net, to determine whether observed behavior is architecture-specific or more general.
+
+Generalization is evaluated by training/validating on UDTIRI-Crack and testing on a different crack dataset, OmniCrack30K.
 
 ## Research Questions
 
 The project is organized around several questions:
 
+- Can U-Net-style reconstruction improve the spatial-detail limitations of the original DeepCrack architecture?
+- How should hierarchical side supervision be combined with decoder-based reconstruction for thin crack structures?
 - Which objective functions best handle severe crack/background imbalance?
 - How do BCE, Dice, IoU, Focal, Boundary, and Connectivity-oriented losses change the precision-recall trade-off?
 - Do combinations of complementary objectives generalize better than single losses?
 - Can adaptive weighting prevent one objective from dominating multi-loss optimization?
 - How do **GradNorm** and **uncertainty weighting** behave compared with fixed loss weights?
-- Are improvements specific to U-DeepCrack, or do they transfer across segmentation architectures?
+- Do architectural and loss-function improvements remain useful under cross-dataset evaluation?
 
 ## Research Workflow
 
 ```text
-Road-crack segmentation baseline
+DeepCrack 2019 baseline study
             |
-            v
-     Single-loss ablation
-   BCE / Dice / IoU / Focal
-            |
-            v
-     Multi-loss combinations
- region + imbalance + boundary
-            |
-            v
-   Fixed-weight optimization
-            |
-            v
- Adaptive objective weighting
-  |                       |
-GradNorm          Uncertainty weighting
-  |                       |
-  +-----------+-----------+
-              |
-              v
-   Cross-architecture validation
-              |
-              v
-    Cross-dataset evaluation
+            +----------------------------+
+            |                            |
+            v                            v
+  U-DeepCrack architecture       Loss-function study
+  encoder + U-Net decoder        single / combined losses
+  skip connections               fixed / adaptive weights
+  deep supervision               GradNorm / uncertainty
+            |                            |
+            +-------------+--------------+
+                          |
+                          v
+                Joint architecture-loss
+                    experimentation
+                          |
+                          v
+              Cross-architecture validation
+                          |
+                          v
+              Cross-dataset evaluation
+              UDTIRI -> OmniCrack30K
 ```
 
-## Model Platform
+## U-DeepCrack Experimental Platform
 
-### U-DeepCrack
+U-DeepCrack is the main architecture represented in the public consolidated results. Its combination of hierarchical side outputs, decoder reconstruction, and deep supervision makes it useful for studying both **architectural reconstruction quality** and **multi-objective optimization behavior**.
 
-U-DeepCrack is the main experimental platform in the current consolidated results. It combines a VGG16-based hierarchical encoder with U-Net-style spatial reconstruction, skip connections, multi-scale side outputs, and deep supervision.
-
-The architecture is useful for the loss study because multiple supervised outputs create a demanding optimization setting in which different objective components can produce gradients with substantially different scales and behaviors.
-
-### Additional architecture studies
-
-The broader internal study also includes DeepCrack-derived variants, attention-based extensions, and lightweight segmentation architectures such as LM-Net. These experiments are used to test whether observations from the loss study are architecture-specific or more general.
+The current internal implementation reported approximately **25.86M parameters** in one archived run. The architecture itself is part of the project's research contribution rather than merely a neutral benchmark for the loss study.
 
 ## Loss-Function Study
 
@@ -101,7 +127,7 @@ A second part of the project replaces manually fixed weights with adaptive weigh
 | Uncertainty weighting | BCE + Dice | 0.4852 | **0.8764** | 0.6067 | 0.4522 | 88 |
 | Uncertainty weighting | BCE + Dice + Focal | **0.5453** | 0.8156 | **0.6376** | **0.4847** | 79 |
 
-The adaptive experiments expose a different optimization regime from the strongest static-loss runs. In particular, the adaptive methods tend to produce **high recall**, while the uncertainty-weighted BCE + Dice + Focal configuration gives the strongest validation Dice and IoU among the adaptive runs currently available.
+The adaptive experiments expose a different optimization regime from the strongest static-loss runs. In particular, the adaptive methods tend to produce high recall, while the uncertainty-weighted BCE + Dice + Focal configuration gives the strongest validation Dice and IoU among the adaptive runs currently available.
 
 The provided adaptive-weighting result file does **not** contain the corresponding OmniCrack30K test metrics. Those cells are therefore left blank in the consolidated CSV rather than estimated or reconstructed from unrelated runs.
 
@@ -131,14 +157,14 @@ Metrics are normalized to a **0–1 scale** and the table keeps source-traceabil
 
 | Workstream | Status |
 |---|---|
-| DeepCrack baseline reproduction and analysis | Completed internally |
-| U-DeepCrack experimental platform | Completed internally |
+| DeepCrack 2019 reproduction and analysis | Completed internally |
+| U-DeepCrack architectural extension | Implemented and evaluated internally |
 | Single-loss ablations | Completed across multiple objectives |
 | Static multi-loss combinations | Completed across multiple configurations |
 | GradNorm adaptive weighting | Evaluated internally |
 | Multiplicative GradNorm variant | Evaluated internally |
 | Uncertainty-based adaptive weighting | Evaluated internally |
-| Attention-based architecture extension | Prototype / under evaluation |
+| Attention U-DeepCrack extension | Prototype / under evaluation |
 | Cross-architecture validation | In progress |
 | Final consolidated benchmark | In progress |
 | Journal-ready method and manuscript | Not finalized |
@@ -156,7 +182,7 @@ Experiments track more than a single segmentation score. The analysis includes:
 - computational cost;
 - transfer from UDTIRI-Crack to OmniCrack30K.
 
-The aim is to understand **why a loss formulation changes model behavior**, rather than treating loss selection as a minor implementation choice.
+The broader aim is to understand **how architecture design and objective design interact when segmenting thin, highly imbalanced crack structures**.
 
 ## Public Repository Scope
 
@@ -174,11 +200,11 @@ Selected consolidated result tables are published when they communicate the rese
 
 ## Technologies Used Internally
 
-The internal research workflow uses **Python, PyTorch, GPU-based training, semantic segmentation, deep supervision, multi-objective optimization, and systematic experiment tracking**.
+The internal research workflow uses **Python, PyTorch, GPU-based training, semantic segmentation, deep supervision, encoder-decoder architectures, multi-objective optimization, and systematic experiment tracking**.
 
 ## Research Context
 
-The project builds on established ideas from DeepCrack, U-Net-style segmentation, multi-objective optimization, GradNorm, and uncertainty-based task weighting. These methods serve as research foundations and comparison points; project-specific implementation details remain private while the work is under development.
+The project builds on DeepCrack 2019 and established ideas from U-Net-style reconstruction, deep supervision, multi-objective optimization, GradNorm, and uncertainty-based weighting. **U-DeepCrack is the project's architectural extension of the DeepCrack baseline**, while the loss study forms the second major research axis. Project-specific implementation details remain private while the work is under development.
 
 ## Repository Status
 

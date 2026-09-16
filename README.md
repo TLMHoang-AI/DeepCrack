@@ -57,7 +57,19 @@ The same ideas are being examined across multiple segmentation architectures, in
 | Final consolidated benchmark | In progress |
 | Journal-ready method and manuscript | Not finalized |
 
-The project currently contains a substantial set of internal ablations and diagnostics. Results are not presented here as final claims because experiment selection and cross-model validation are still being consolidated.
+## Representative Internal Results
+
+The values below are included to show the current experimental progress, **not as final journal claims**. They come from historical internal runs and may change as the evaluation protocol is consolidated.
+
+| Experiment | Representative validation result | Notes |
+|---|---|---|
+| U-DeepCrack hybrid | Crack IoU ≈ **0.5429** | Best checkpoint in one archived run; VGG16-based encoder-decoder with deep supervision |
+| Archived static multi-loss run (`Scenario_16`) | Dice **0.7101**, Crack IoU **0.5505**, mIoU **0.7673** | Best recorded validation point at epoch 58 |
+| Same `Scenario_16` checkpoint | Precision **0.6986**, Recall **0.7220** | Shows the precision/recall trade-off rather than reporting overlap alone |
+
+The U-DeepCrack run used approximately **25.86M parameters** and the archived report recorded its best checkpoint at epoch 23. The static multi-loss run continued to epoch 78 before early stopping, with its best validation crack IoU observed earlier in training.
+
+These numbers are intentionally labeled as **representative validation results**. They should not be interpreted as a finalized benchmark across architectures because some historical experiments used different training or evaluation details.
 
 ## Evaluation Focus
 

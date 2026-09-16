@@ -11,7 +11,7 @@ The first direction is **U-DeepCrack**, a project-specific architectural extensi
 
 The second direction is a systematic study of **segmentation objectives and loss balancing**. Crack pixels are sparse, thin, and structurally sensitive, so the optimization objective strongly affects recall, false positives, continuity, and overlap metrics. The project therefore evaluates single losses, multi-loss combinations, fixed weighting, and adaptive weighting methods such as **GradNorm** and **uncertainty-based weighting**.
 
-These two directions are intentionally studied together: U-DeepCrack provides a stronger architectural platform, while the loss-function study investigates how that platform should be optimized and whether the same conclusions transfer to other segmentation architectures.
+These two directions are intentionally studied together: U-DeepCrack provides an architectural contribution of its own, while the loss-function study investigates how that architecture should be optimized and whether the same conclusions transfer to other segmentation models.
 
 ## Main Research Contributions
 
@@ -50,22 +50,20 @@ The goal is not only to identify a high-scoring configuration, but to understand
 
 ### 3. Cross-architecture and cross-dataset validation
 
-The loss strategies are also being evaluated beyond U-DeepCrack, including DeepCrack-derived and lightweight segmentation models such as LM-Net, to determine whether observed behavior is architecture-specific or more general.
+Adaptive weighting is also evaluated across **LM-Net, iSwinUnet, and U-DeepCrack** to determine whether a weighting strategy behaves consistently across architectures.
 
-Generalization is evaluated by training/validating on UDTIRI-Crack and testing on a different crack dataset, OmniCrack30K.
+Generalization is evaluated by training/validating on **UDTIRI-Crack** and testing on a different crack dataset, **OmniCrack30K**.
 
 ## Research Questions
-
-The project is organized around several questions:
 
 - Can U-Net-style reconstruction improve the spatial-detail limitations of the original DeepCrack architecture?
 - How should hierarchical side supervision be combined with decoder-based reconstruction for thin crack structures?
 - Which objective functions best handle severe crack/background imbalance?
-- How do BCE, Dice, IoU, Focal, Boundary, and Connectivity-oriented losses change the precision-recall trade-off?
+- How do BCE, Dice, IoU, Focal, Boundary, and Connectivity-oriented losses change segmentation behavior?
 - Do combinations of complementary objectives generalize better than single losses?
 - Can adaptive weighting prevent one objective from dominating multi-loss optimization?
 - How do **GradNorm** and **uncertainty weighting** behave compared with fixed loss weights?
-- Do architectural and loss-function improvements remain useful under cross-dataset evaluation?
+- Do architecture and loss improvements remain useful under cross-dataset evaluation?
 
 ## Research Workflow
 
@@ -98,15 +96,13 @@ DeepCrack 2019 baseline study
 
 U-DeepCrack is the main architecture represented in the public consolidated results. Its combination of hierarchical side outputs, decoder reconstruction, and deep supervision makes it useful for studying both **architectural reconstruction quality** and **multi-objective optimization behavior**.
 
-The current internal implementation reported approximately **25.86M parameters** in one archived run. The architecture itself is part of the project's research contribution rather than merely a neutral benchmark for the loss study.
+One archived run reported approximately **25.86M parameters**. The architecture itself is part of the project's research contribution rather than merely a neutral benchmark for the loss study.
 
 ## Loss-Function Study
 
 ### Static objective ablations
 
-The static study evaluates both individual and combined segmentation losses. The consolidated U-DeepCrack results currently contain **23 static-loss configurations**, including single objectives and increasingly complex combinations.
-
-Representative configurations include:
+The static study evaluates both individual and combined segmentation losses. The consolidated U-DeepCrack results currently contain **23 static-loss configurations**.
 
 | U-DeepCrack loss configuration | UDTIRI Val Dice | UDTIRI Val IoU | OmniCrack30K Test Dice | OmniCrack30K Test IoU | Patch Test Dice | Patch Test IoU |
 |---|---:|---:|---:|---:|---:|---:|
@@ -114,22 +110,32 @@ Representative configurations include:
 | IoU | 0.7005 | 0.5390 | 0.3989 | 0.2965 | **0.4111** | **0.3078** |
 | Dice + CE | 0.7086 | 0.5487 | 0.3991 | 0.2975 | 0.4049 | 0.3046 |
 
-These results illustrate an important theme of the project: a configuration that is strong on UDTIRI validation is not automatically the strongest under cross-dataset testing, so both optimization behavior and transfer performance need to be considered.
+These runs show why the project evaluates both validation and external-test behavior: a configuration that is strong on UDTIRI validation is not automatically the strongest after transfer to OmniCrack30K.
 
-### Adaptive loss weighting
+### Adaptive loss weighting — U-DeepCrack
 
-A second part of the project replaces manually fixed weights with adaptive weighting methods. Four U-DeepCrack adaptive experiments are currently consolidated:
+The adaptive study replaces manually fixed weights with dynamic weighting strategies. The finalized U-DeepCrack summary currently contains four adaptive experiments:
 
-| Adaptive method | Objective set | UDTIRI Val Precision | Val Recall | Val Dice | Val IoU | Best epoch |
+| Adaptive method | Objective set | UDTIRI Val Dice | Val IoU | OmniCrack30K Test Dice | Test IoU | Best epoch |
 |---|---|---:|---:|---:|---:|---:|
-| GradNorm | BCE + Dice | 0.4643 | 0.8324 | 0.5835 | 0.4299 | 87 |
-| GradNorm + Multiplicative | BCE + Dice | 0.4791 | **0.8530** | 0.6009 | 0.4461 | 47 |
-| Uncertainty weighting | BCE + Dice | 0.4852 | **0.8764** | 0.6067 | 0.4522 | 88 |
-| Uncertainty weighting | BCE + Dice + Focal | **0.5453** | 0.8156 | **0.6376** | **0.4847** | 79 |
+| GradNorm | CE + Dice | 0.6358 | 0.4661 | 0.3418 | 0.2528 | 87 |
+| GradNorm + ML | CE + Dice | 0.6009 | 0.4161 | 0.3134 | 0.2541 | 47 |
+| Uncertainty weighting | CE + Dice | **0.6584** | **0.4908** | **0.4126** | **0.3035** | 88 |
+| Uncertainty weighting | CE + Dice + Focal | 0.6376 | 0.4847 | 0.3914 | 0.2879 | 79 |
 
-The adaptive experiments expose a different optimization regime from the strongest static-loss runs. In particular, the adaptive methods tend to produce high recall, while the uncertainty-weighted BCE + Dice + Focal configuration gives the strongest validation Dice and IoU among the adaptive runs currently available.
+For U-DeepCrack, **uncertainty weighting with CE + Dice** gives the strongest adaptive result in both UDTIRI validation and OmniCrack30K cross-dataset testing. Adding Focal loss does not improve the adaptive result in this architecture, while the multiplicative GradNorm variant also does not produce a consistent gain over standard GradNorm.
 
-The provided adaptive-weighting result file does **not** contain the corresponding OmniCrack30K test metrics. Those cells are therefore left blank in the consolidated CSV rather than estimated or reconstructed from unrelated runs.
+### Adaptive weighting across architectures
+
+The same weighting strategies were evaluated on LM-Net and iSwinUnet. The strongest cross-dataset adaptive configuration differs by architecture:
+
+| Model | Strongest adaptive configuration on OmniCrack30K | UDTIRI Val Dice | Test Dice | Test IoU |
+|---|---|---:|---:|---:|
+| LM-Net | Uncertainty (CE + Dice) | 0.7881 | 0.3720 | 0.2723 |
+| iSwinUnet | Uncertainty (CE + Dice + Focal) | 0.6969 | 0.3945 | 0.2888 |
+| U-DeepCrack | Uncertainty (CE + Dice) | 0.6584 | **0.4126** | **0.3035** |
+
+This comparison is useful for the research question itself: **the preferred weighting strategy is architecture-dependent**, so a loss-weighting method should not be judged only on one network.
 
 ## Evaluation Protocol
 
@@ -142,16 +148,16 @@ The OmniCrack30K numbers should therefore be interpreted as **cross-dataset test
 
 ## Consolidated Results
 
-The public consolidated table is available at:
+The public U-DeepCrack result table is available at:
 
 [`results/udeepcrack_results.csv`](results/udeepcrack_results.csv)
 
-It currently contains **27 U-DeepCrack experiments**:
+It contains **27 U-DeepCrack experiments**:
 
 - **23** static loss-function ablations;
 - **4** adaptive loss-weighting experiments.
 
-Metrics are normalized to a **0–1 scale** and the table keeps source-traceability and data-quality notes. Historical source irregularities are flagged instead of silently corrected.
+Metrics are normalized to a **0–1 scale** and the table keeps source-traceability and data-quality notes. The final adaptive summary table supersedes earlier intermediate adaptive metrics where the two sources differ.
 
 ## Current Research Status
 
@@ -164,23 +170,15 @@ Metrics are normalized to a **0–1 scale** and the table keeps source-traceabil
 | GradNorm adaptive weighting | Evaluated internally |
 | Multiplicative GradNorm variant | Evaluated internally |
 | Uncertainty-based adaptive weighting | Evaluated internally |
+| Adaptive weighting across LM-Net / iSwinUnet / U-DeepCrack | Evaluated internally |
 | Attention U-DeepCrack extension | Prototype / under evaluation |
-| Cross-architecture validation | In progress |
+| Broader cross-architecture validation | In progress |
 | Final consolidated benchmark | In progress |
 | Journal-ready method and manuscript | Not finalized |
 
 ## Evaluation Focus
 
-Experiments track more than a single segmentation score. The analysis includes:
-
-- Dice / F1;
-- crack IoU and mean IoU;
-- precision and recall;
-- false-positive / false-negative behavior;
-- crack continuity and boundary quality;
-- optimization stability;
-- computational cost;
-- transfer from UDTIRI-Crack to OmniCrack30K.
+Experiments track more than a single segmentation score. The analysis includes Dice/F1, crack IoU, precision and recall, false-positive/false-negative behavior, crack continuity, optimization stability, computational cost, and transfer from UDTIRI-Crack to OmniCrack30K.
 
 The broader aim is to understand **how architecture design and objective design interact when segmenting thin, highly imbalanced crack structures**.
 

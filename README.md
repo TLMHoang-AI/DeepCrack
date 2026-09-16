@@ -7,17 +7,17 @@
 
 This project studies **road crack segmentation from two complementary directions: architecture design and loss-function optimization**.
 
-The first direction is **U-DeepCrack**, a project-specific architectural extension developed from DeepCrack 2019. The goal is to improve spatial reconstruction of thin crack structures while preserving the hierarchical supervision that makes DeepCrack effective for multi-scale crack detection.
+The first direction is **U-DeepCrack**, a project-specific architectural extension developed from **DeepCrack** ([Liu et al., 2019](https://doi.org/10.1016/j.neucom.2019.01.036)). The goal is to improve spatial reconstruction of thin crack structures while preserving the hierarchical supervision that is central to the original DeepCrack formulation.
 
 The second direction is a systematic study of **segmentation objectives and loss balancing**. Crack pixels are sparse, thin, and structurally sensitive, so the optimization objective strongly affects recall, false positives, continuity, and overlap metrics. The project therefore evaluates single losses, multi-loss combinations, fixed weighting, and adaptive weighting methods such as **GradNorm** and **uncertainty-based weighting**.
 
-These two directions are intentionally studied together: U-DeepCrack provides a stronger architectural platform, while the loss-function study investigates how that platform should be optimized and whether the same conclusions transfer to other segmentation architectures.
+These two directions are intentionally studied together: U-DeepCrack provides an architectural extension of the DeepCrack baseline, while the loss-function study investigates how that architecture should be optimized and whether the same conclusions transfer to other segmentation architectures.
 
 ## Main Research Contributions
 
 ### 1. U-DeepCrack architecture
 
-U-DeepCrack extends the DeepCrack 2019 design with a U-Net-style reconstruction path. The implemented version combines:
+U-DeepCrack extends the DeepCrack architecture proposed by [Liu et al. (2019)](https://doi.org/10.1016/j.neucom.2019.01.036) with a U-Net-style reconstruction path. The implemented version combines:
 
 - a VGG16-based hierarchical encoder;
 - a four-stage decoder with progressive upsampling;
@@ -26,7 +26,7 @@ U-DeepCrack extends the DeepCrack 2019 design with a U-Net-style reconstruction 
 - five side outputs;
 - deep supervision and fused prediction.
 
-Compared with the original DeepCrack design, which mainly upsamples hierarchical side predictions independently, U-DeepCrack reconstructs spatial information progressively through a decoder while retaining multi-scale supervision.
+Compared with the original DeepCrack design ([Liu et al., 2019](https://doi.org/10.1016/j.neucom.2019.01.036)), which primarily upsamples hierarchical side predictions to the input resolution, U-DeepCrack reconstructs spatial information progressively through a decoder while retaining multi-scale supervision.
 
 An attention-gated extension of U-DeepCrack has also been prototyped and remains under evaluation.
 
@@ -58,7 +58,7 @@ Generalization is evaluated by training/validating on UDTIRI-Crack and testing o
 
 The project is organized around several questions:
 
-- Can U-Net-style reconstruction improve the spatial-detail limitations of the original DeepCrack architecture?
+- Can U-Net-style reconstruction improve the spatial-detail limitations of the original DeepCrack architecture ([Liu et al., 2019](https://doi.org/10.1016/j.neucom.2019.01.036))?
 - How should hierarchical side supervision be combined with decoder-based reconstruction for thin crack structures?
 - Which objective functions best handle severe crack/background imbalance?
 - How do BCE, Dice, IoU, Focal, Boundary, and Connectivity-oriented losses change the precision-recall trade-off?
@@ -93,6 +93,8 @@ DeepCrack 2019 baseline study
               Cross-dataset evaluation
               UDTIRI -> OmniCrack30K
 ```
+
+The baseline in this workflow refers to **DeepCrack: A Deep Hierarchical Feature Learning Architecture for Crack Segmentation** ([Liu et al., 2019](https://doi.org/10.1016/j.neucom.2019.01.036)).
 
 ## U-DeepCrack Experimental Platform
 
@@ -182,7 +184,7 @@ The qualitative comparison figure is stored at:
 
 | Workstream | Status |
 |---|---|
-| DeepCrack 2019 reproduction and analysis | Completed internally |
+| DeepCrack 2019 reproduction and analysis ([Liu et al., 2019](https://doi.org/10.1016/j.neucom.2019.01.036)) | Completed internally |
 | U-DeepCrack architectural extension | Implemented and evaluated internally |
 | Single-loss ablations | Completed across multiple objectives |
 | Static multi-loss combinations | Completed across multiple configurations |
@@ -229,7 +231,29 @@ The internal research workflow uses **Python, PyTorch, GPU-based training, seman
 
 ## Research Context
 
-The project builds on DeepCrack 2019 and established ideas from U-Net-style reconstruction, deep supervision, multi-objective optimization, GradNorm, and uncertainty-based weighting. **U-DeepCrack is the project's architectural extension of the DeepCrack baseline**, while the loss study forms the second major research axis. Project-specific implementation details remain private while the work is under development.
+The project builds directly on DeepCrack ([Liu et al., 2019](https://doi.org/10.1016/j.neucom.2019.01.036)) and established ideas from U-Net-style reconstruction, deep supervision, multi-objective optimization, GradNorm, and uncertainty-based weighting. **U-DeepCrack is the project's architectural extension of the DeepCrack baseline**, while the loss study forms the second major research axis. Project-specific implementation details remain private while the work is under development.
+
+## References
+
+- Liu, Y., Yao, J., Lu, X., Xie, R., & Li, L. (2019). **DeepCrack: A Deep Hierarchical Feature Learning Architecture for Crack Segmentation.** *Neurocomputing, 338*, 139–153. Elsevier. https://doi.org/10.1016/j.neucom.2019.01.036
+
+<details>
+<summary>BibTeX</summary>
+
+```bibtex
+@article{liu2019deepcrack,
+  title={DeepCrack: A Deep Hierarchical Feature Learning Architecture for Crack Segmentation},
+  author={Liu, Yahui and Yao, Jian and Lu, Xiaohu and Xie, Renping and Li, Li},
+  journal={Neurocomputing},
+  volume={338},
+  pages={139--153},
+  year={2019},
+  publisher={Elsevier},
+  doi={10.1016/j.neucom.2019.01.036}
+}
+```
+
+</details>
 
 ## Repository Status
 

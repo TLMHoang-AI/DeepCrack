@@ -69,30 +69,13 @@ The project is organized around several questions:
 
 ## Research Workflow
 
-```text
-DeepCrack 2019 baseline study
-            |
-            +----------------------------+
-            |                            |
-            v                            v
-  U-DeepCrack architecture       Loss-function study
-  encoder + U-Net decoder        single / combined losses
-  skip connections               fixed / adaptive weights
-  deep supervision               GradNorm / uncertainty
-            |                            |
-            +-------------+--------------+
-                          |
-                          v
-                Joint architecture-loss
-                    experimentation
-                          |
-                          v
-              Cross-architecture validation
-                          |
-                          v
-              Cross-dataset evaluation
-              UDTIRI -> OmniCrack30K
-```
+The project jointly studies **architecture design** and **loss-function optimization**, then evaluates how the resulting choices transfer across architectures and datasets.
+
+<p align="center">
+  <img src="docs/Crack_segmentation_workflow.png" alt="U-DeepCrack research workflow" width="900">
+</p>
+
+<p align="center"><i>Research workflow covering U-DeepCrack architecture development, loss-function optimization, cross-architecture validation, and cross-dataset evaluation.</i></p>
 
 The baseline in this workflow refers to **DeepCrack: A Deep Hierarchical Feature Learning Architecture for Crack Segmentation** ([Liu et al., 2019](https://doi.org/10.1016/j.neucom.2019.01.036)).
 
@@ -162,6 +145,27 @@ The project uses two crack-segmentation datasets with different roles:
 - **OmniCrack30K** is used as an external test dataset to evaluate how a model trained on UDTIRI transfers beyond the training/validation distribution.
 
 The OmniCrack30K numbers should therefore be interpreted as **cross-dataset test performance**, not as a same-dataset held-out UDTIRI test score.
+
+### Dataset Examples
+
+The project deliberately separates the **training/validation domain** from the **external evaluation domain**. The examples below provide a visual reference for the two datasets used in this protocol.
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/UdtiriCrack_example.png" alt="UDTIRI-Crack example" width="100%">
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/OmniCrack_example.png" alt="OmniCrack30K example" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><b>UDTIRI-Crack</b><br><sub>Training / validation domain</sub></td>
+    <td align="center"><b>OmniCrack30K</b><br><sub>External cross-dataset test domain</sub></td>
+  </tr>
+</table>
+
+These examples are included to make the domain shift in the evaluation setup easier to understand; the reported OmniCrack30K metrics remain the quantitative measure of cross-dataset generalization.
 
 ## Consolidated Results
 
